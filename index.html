@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { margin: 0; background: #111; color: #fff; }
+    .viewer { max-width: 1080px; margin: 0 auto; }
+    img { width: 100%; display: block; background: #222; }
+    .toolbar { position: fixed; top: 0; left: 0; right: 0; padding: 8px 12px; background: rgba(0,0,0,0.5); }
+  </style>
+</head>
+<body>
+  <div class="toolbar">Episode 1 · Tap to toggle</div>
+  <main class="viewer" id="viewer"></main>
+  <script>
+    const manifest = [
+      { src: '001.webp', w: 1080, h: 1600 },
+      { src: '002.webp', w: 1080, h: 1400 },
+      { src: '003.webp', w: 1080, h: 1400 },
+      // ...
+    ];
+    const container = document.getElementById('viewer');
+    manifest.forEach(item => {
+      const img = document.createElement('img');
+      img.src = item.src;
+      img.loading = 'lazy';
+      img.alt = '';
+      container.appendChild(img);
+    });
+    // Prefetch ภาพถัดไปเล็กน้อย
+    const prefetchCount = 3;
+    let lastVisibleIndex = 0;
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const idx = Array.from(container.children).indexOf(e.target);
+          if (idx > lastVisibleIndex) {
+            lastVisibleIndex = idx;
+            for (let i = 1; i <= prefetchCount; i++) {
+              const next = manifest[idx + i];
+              if (next) new Image().src = next.src;
+            }
+          }
+        }
+      });
+    }, { rootMargin: '200px' });
+    container.querySelectorAll('img').forEach(img => io.observe(img));
+  </script>
+</body>
+</html>
